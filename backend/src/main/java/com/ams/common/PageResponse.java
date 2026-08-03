@@ -5,29 +5,25 @@ import org.springframework.data.domain.Page;
 import java.util.List;
 
 /**
- * Standard paginated response wrapper.
+ * Paginated response wrapper for list endpoints.
+ * Matches 05_REST_API_Specification Section 3.2 exactly.
  * 
- * @param <T> Content item type
+ * @param <T> The type of elements in the content list
  */
-public class PageResponse<T> {
+public record PageResponse<T>(
+    List<T> content,
+    int page,
+    int size,
+    long totalElements,
+    int totalPages
+) {
     
-    private List<T> content;
-    private int page;
-    private int size;
-    private long totalElements;
-    private int totalPages;
-    
-    public PageResponse() {
-    }
-    
-    public PageResponse(List<T> content, int page, int size, long totalElements, int totalPages) {
-        this.content = content;
-        this.page = page;
-        this.size = size;
-        this.totalElements = totalElements;
-        this.totalPages = totalPages;
-    }
-    
+    /**
+     * Create a PageResponse from a Spring Data Page.
+     *
+     * @param page the Spring Data Page
+     * @return PageResponse with extracted pagination data
+     */
     public static <T> PageResponse<T> from(Page<T> page) {
         return new PageResponse<>(
             page.getContent(),
@@ -36,45 +32,5 @@ public class PageResponse<T> {
             page.getTotalElements(),
             page.getTotalPages()
         );
-    }
-    
-    public List<T> getContent() {
-        return content;
-    }
-    
-    public void setContent(List<T> content) {
-        this.content = content;
-    }
-    
-    public int getPage() {
-        return page;
-    }
-    
-    public void setPage(int page) {
-        this.page = page;
-    }
-    
-    public int getSize() {
-        return size;
-    }
-    
-    public void setSize(int size) {
-        this.size = size;
-    }
-    
-    public long getTotalElements() {
-        return totalElements;
-    }
-    
-    public void setTotalElements(long totalElements) {
-        this.totalElements = totalElements;
-    }
-    
-    public int getTotalPages() {
-        return totalPages;
-    }
-    
-    public void setTotalPages(int totalPages) {
-        this.totalPages = totalPages;
     }
 }

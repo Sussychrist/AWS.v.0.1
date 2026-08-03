@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -51,12 +52,15 @@ public class GlobalExceptionHandler {
     }
     
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ApiResponse<String>> handleValidationErrors(MethodArgumentNotValidException ex) {
-        String errors = ex.getBindingResult().getFieldErrors().stream()
-                .map(FieldError::getDefaultMessage)
-                .collect(Collectors.joining(", "));
-        log.warn("Validation failed: {}", errors);
-        return ResponseEntity.badRequest().body(ApiResponse.error(errors));
+    public ResponseEntity<ErrorResponse> handleValidationErrors(MethodArgumentNotValidException ex) {
+        List<ErrorResponse.FieldError> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(error -> new ErrorResponse.FieldError(
+                        error.getField(),
+                        error.getDefaultMessage() != null ? error.getDefaultMessage() : ""
+                ))
+                .collect(Collectors.toList());
+        log.warn("Validation failed: {}", fieldErrors);
+        return ResponseEntity.badRequest().body(ErrorResponse.of("Validation failed", fieldErrors));
     }
     
     @ExceptionHandler(MaxUploadSizeExceededException.class)

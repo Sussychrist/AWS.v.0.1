@@ -3,59 +3,43 @@ package com.ams.common;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
 /**
- * Standard API response wrapper for all successful responses.
+ * Standard API response wrapper.
+ * Matches 05_REST_API_Specification Section 3.2.
  * 
- * @param <T> Response data type
+ * @param <T> The type of the response data payload
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse<T> {
-    
-    private boolean success;
-    private String message;
-    private T data;
-    
-    public ApiResponse() {
-    }
-    
-    public ApiResponse(boolean success, String message, T data) {
-        this.success = success;
-        this.message = message;
-        this.data = data;
-    }
-    
-    public static <T> ApiResponse<T> success(T data) {
-        return new ApiResponse<>(true, null, data);
-    }
-    
+public record ApiResponse<T>(boolean success, String message, T data) {
+
+    /**
+     * Create a success response with data.
+     *
+     * @param message the success message
+     * @param data the response data payload
+     * @param <T> the type of the data
+     * @return success ApiResponse
+     */
     public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(true, message, data);
     }
-    
-    public static <T> ApiResponse<T> error(String message) {
+
+    /**
+     * Create a success response with no data.
+     *
+     * @param message the success message
+     * @return success ApiResponse with null data
+     */
+    public static ApiResponse<Void> success(String message) {
+        return new ApiResponse<>(true, message, null);
+    }
+
+    /**
+     * Create an error response.
+     *
+     * @param message the error message
+     * @return error ApiResponse
+     */
+    public static ApiResponse<Void> error(String message) {
         return new ApiResponse<>(false, message, null);
-    }
-    
-    public boolean isSuccess() {
-        return success;
-    }
-    
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-    
-    public String getMessage() {
-        return message;
-    }
-    
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    
-    public T getData() {
-        return data;
-    }
-    
-    public void setData(T data) {
-        this.data = data;
     }
 }
