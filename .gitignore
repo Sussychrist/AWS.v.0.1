@@ -1,50 +1,40 @@
 ```
-# Dependencies
-node_modules/
-
-# Build artifacts
-dist/
-build/
+# Compiled and build artifacts
+*.class
+*.o
+*.obj
+*.out
 target/
 
-# Java compiled classes
-**/*.class
+# Dependencies
+.mypy_cache/
+.pytest_cache/
+__pycache__/
+venv/
+.venv/
+node_modules/
+.gradle/
 
-# Logs
+# Logs and temp files
 *.log
+*.tmp
+*.swp
 
-# Environment variables
+# Environment
 .env
 .env.local
 *.env.*
 
-# IDE files
+# Editors
 .vscode/
 .idea/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Python cache (if any Python files present)
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
 
 # Coverage reports
 coverage/
 htmlcov/
 .coverage
 
-# MyPy cache
-.mypy_cache/
-
-# Pytest cache
-.pytest_cache/
-
-# Temporary files
-*.tmp
+# System files
+.DS_Store
+Thumbs.db
 ```
