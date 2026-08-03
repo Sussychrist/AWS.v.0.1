@@ -1,13 +1,16 @@
 package com.ams.exception;
 
-import org.springframework.http.HttpStatus;
-
-public class ResourceNotFoundException extends BusinessException {
-    public ResourceNotFoundException(String resource, Long id) {
-        super(resource + " not found with id: " + id, HttpStatus.NOT_FOUND);
-    }
-
+/**
+ * Exception thrown when a requested resource is not found.
+ * Returns HTTP 404 Not Found.
+ */
+public class ResourceNotFoundException extends RuntimeException {
+    
     public ResourceNotFoundException(String message) {
-        super(message, HttpStatus.NOT_FOUND);
+        super(message);
+    }
+    
+    public ResourceNotFoundException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

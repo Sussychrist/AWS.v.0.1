@@ -117,6 +117,13 @@ CREATE TABLE ABNORMAL_IMAGE (
 -- ================================================================
 -- AUDIT_LOG
 -- ================================================================
+-- ENTITY_NO: Business identifier for audited entities.
+-- - ABNORMAL → ABNORMAL_NO
+-- - USER_INFO → USERNAME
+-- - PROCESS_STEP → STEP_CODE
+-- - DEPARTMENT → DEPARTMENT_CODE
+-- - ABNORMAL_IMAGE → parent's ABNORMAL_NO
+-- Otherwise null.
 CREATE TABLE AUDIT_LOG (
     AUDIT_ID         NUMBER(19)      NOT NULL,
     USER_ID          NUMBER(19)      NOT NULL,
@@ -136,6 +143,11 @@ CREATE TABLE AUDIT_LOG (
 -- ================================================================
 -- ABNORMAL_NO_COUNTER
 -- ================================================================
+-- Daily counter for abnormal number generation (AB-YYYYMMDD-NNNNN)
+-- IMPORTANT: Counter increment must be atomic using @Transactional with row locking.
+-- Implementation: SELECT ... FOR UPDATE, then increment LAST_NUMBER.
+-- If daily limit 99999 is reached, prevent creation with business error.
+-- Gaps in numbering are acceptable; uniqueness is enforced by UQ_ABNORMAL_NO.
 CREATE TABLE ABNORMAL_NO_COUNTER (
     SEQ_DATE        DATE           NOT NULL,
     LAST_NUMBER     NUMBER(5)      DEFAULT 0 NOT NULL,
@@ -184,8 +196,10 @@ CREATE INDEX IDX_AUDIT_LOG_ACTION_TIME ON AUDIT_LOG (ACTION_TIME);
 -- ================================================================
 -- SEED DATA
 -- ================================================================
+-- IMPORTANT: Seed order must be: DEPARTMENT → PROCESS_STEP → USER_INFO
+-- This ensures foreign key constraints are satisfied.
 
--- Default Departments
+-- Default Departments (seed first)
 INSERT INTO DEPARTMENT (DEPARTMENT_ID, DEPARTMENT_CODE, DEPARTMENT_NAME, DESCRIPTION, STATUS, SORT_ORDER)
 VALUES (SEQ_DEPARTMENT.NEXTVAL, 'DEPT-PROD', 'Production', 'Production department', 'ACTIVE', 1);
 
@@ -198,7 +212,7 @@ VALUES (SEQ_DEPARTMENT.NEXTVAL, 'DEPT-MAINT', 'Maintenance', 'Maintenance depart
 INSERT INTO DEPARTMENT (DEPARTMENT_ID, DEPARTMENT_CODE, DEPARTMENT_NAME, DESCRIPTION, STATUS, SORT_ORDER)
 VALUES (SEQ_DEPARTMENT.NEXTVAL, 'DEPT-PLAN', 'Planning', 'Planning department', 'ACTIVE', 4);
 
--- Default Process Steps
+-- Default Process Steps (seed second)
 INSERT INTO PROCESS_STEP (PROCESS_STEP_ID, STEP_CODE, STEP_NAME, DESCRIPTION, STATUS, SORT_ORDER)
 VALUES (SEQ_PROCESS_STEP.NEXTVAL, 'STEP-010', 'Cutting', 'Cutting process', 'ACTIVE', 1);
 
@@ -211,8 +225,9 @@ VALUES (SEQ_PROCESS_STEP.NEXTVAL, 'STEP-030', 'Inspection', 'Inspection process'
 INSERT INTO PROCESS_STEP (PROCESS_STEP_ID, STEP_CODE, STEP_NAME, DESCRIPTION, STATUS, SORT_ORDER)
 VALUES (SEQ_PROCESS_STEP.NEXTVAL, 'STEP-040', 'Packing', 'Packing process', 'ACTIVE', 4);
 
--- Default Admin User (password: admin123, BCrypt hashed)
--- Hash generated with BCrypt, cost factor 10
+-- Default Admin User (seed last - depends on DEPARTMENT)
+-- Password: admin123 (BCrypt hashed with cost factor 10)
+-- NOTE: Change this password immediately after deployment!
 INSERT INTO USER_INFO (USER_ID, USERNAME, PASSWORD_HASH, FULL_NAME, EMAIL, DEPARTMENT_ID, ROLE, STATUS)
 VALUES (SEQ_USER_INFO.NEXTVAL, 'admin', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iAt6Z5EHsM8lqkkO9QS3TzCjH3rS', 'System Administrator', 'admin@ams.local', 
         (SELECT DEPARTMENT_ID FROM DEPARTMENT WHERE DEPARTMENT_CODE = 'DEPT-PROD'), 'ADMIN', 'ACTIVE');

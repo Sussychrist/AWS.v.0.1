@@ -14,7 +14,7 @@ This document defines rules for AI coding agents (Qwen Code, Gemini CLI, Claude 
 
 Always read these files before starting:
 - `docs/08_Implementation_Plan_Task_Breakdown.md` - Understand current phase
-- `docs/07_CODING_STANDARDS.md` - Follow coding conventions
+- `docs/07_Coding_Standards_Development_Guidelines.md` - Follow coding conventions
 - Relevant spec documents for the task
 
 ## Good Prompt Pattern
@@ -22,17 +22,20 @@ Always read these files before starting:
 ```text
 Read these files:
 - docs/08_Implementation_Plan_Task_Breakdown.md
-- docs/05_SYSTEM_ARCHITECTURE.md
-- docs/03_REST_API.md
-- docs/02_BUSINESS_RULES.md
+- docs/05_System_Architecture.md
+- docs/04_REST_API_Specification.md
+- docs/02_Business_Rules_Specification.md
 
 Implement only this task:
 Phase 8, Task T8.5: Implement AbnormalNoGenerator.
 
 Requirements:
 - Use ABNORMAL_NO_COUNTER table
-- Use row locking
+- Use row locking (SELECT ... FOR UPDATE)
 - Generate format AB-YYYYMMDD-NNNNN
+- Atomic operation in @Transactional method
+- Daily limit 99999: prevent creation with business error
+- Gaps in numbering acceptable
 - Do not implement frontend
 - Do not add unrelated changes
 
@@ -94,10 +97,11 @@ Every task must:
 ## Security Rules
 
 1. Never commit secrets or passwords
-2. Passwords must be BCrypt hashed
+2. Passwords must be BCrypt hashed (cost factor 10)
 3. JWT secret must come from environment variables
 4. Never expose stack traces in production
 5. Always validate user authorization server-side
+6. JWT expiration: 8 hours for all roles
 
 ## Database Rules
 
@@ -106,6 +110,7 @@ Every task must:
 3. Never use GenerationType.IDENTITY
 4. Use LocalDateTime for TIMESTAMP(6)
 5. Use Long for NUMBER(19)
+6. Seed order: DEPARTMENT → PROCESS_STEP → USER_INFO
 
 ## Error Handling
 
@@ -113,6 +118,38 @@ Every task must:
 2. Return proper HTTP status codes (400, 401, 403, 404, 500)
 3. Wrap all responses in ApiResponse structure
 4. Log errors but don't expose details to clients
+
+## Key Business Rules
+
+### Status Transitions (exactly these, no others)
+- OPEN → PROCESSING ✓
+- OPEN → CLOSED ✓
+- PROCESSING → OPEN ✓
+- PROCESSING → CLOSED ✓
+- CLOSED → PROCESSING ✓
+- CLOSED → OPEN ✗ (explicitly forbidden)
+
+### Abnormal Number Generation
+- Format: AB-YYYYMMDD-NNNNN
+- Daily counter with row locking
+- Max 99999 per day, then reject with business error
+- Gaps acceptable, uniqueness enforced
+
+### Image Upload
+- Max 10 images per abnormal
+- Max 5MB per image
+- JPEG/PNG only
+- Reject entire batch if exceeds remaining slots (no partial uploads)
+
+### Audit Logging
+- Mandatory for CREATE/UPDATE/DELETE on: ABNORMAL, USER_INFO, PROCESS_STEP, DEPARTMENT, ABNORMAL_IMAGE
+- ENTITY_NO populated with business identifier
+- Audit failure rolls back entire transaction
+
+### Password Rules
+- Minimum length: 8 characters
+- Optional in PUT /api/users/{id} (omit/null = keep existing)
+- BCrypt hash with cost factor 10
 
 ## Commit Messages
 
