@@ -1,0 +1,12 @@
+spring:
+  profiles:
+    active: dev
+  application:
+    name: ams-backend
+
+ams:
+  upload:
+    root-path: ./uploads
+  jwt:
+    secret: ${JWT_SECRET:change-this-secret-key-in-production}
+    expiration-ms: 86400000
