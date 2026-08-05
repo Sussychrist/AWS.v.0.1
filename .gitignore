@@ -9,11 +9,9 @@ target/
 # Dependencies
 .mypy_cache/
 .pytest_cache/
-__pycache__/
-venv/
-.venv/
-node_modules/
-.gradle/
+.coverage
+coverage/
+htmlcov/
 
 # Logs and temp files
 *.log
@@ -23,18 +21,13 @@ node_modules/
 # Environment
 .env
 .env.local
-*.env.*
+.env.*
 
 # Editors
 .vscode/
 .idea/
 
-# Coverage reports
-coverage/
-htmlcov/
-.coverage
-
-# System files
+# OS
 .DS_Store
 Thumbs.db
 ```
