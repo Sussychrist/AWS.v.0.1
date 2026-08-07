@@ -15,6 +15,6 @@ public class HealthController {
     
     @GetMapping
     public ResponseEntity<ApiResponse<String>> health() {
-        return ResponseEntity.ok(ApiResponse.success("OK"));
+        return ResponseEntity.ok(ApiResponse.success("Success", "OK"));
     }
 }
